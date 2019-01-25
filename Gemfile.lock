@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    email-fetch-and-process (0.1.0)
+    email-fetch-and-process (0.1.1)
 
 GEM
   remote: https://rubygems.org/
