@@ -106,7 +106,6 @@ class EmailFetchAndProcess
             File.open("#{file_path}.sha", 'r') { |fh| sha_old = fh.read.chomp }
           if sha_new != sha_old
             command_to_run = job.action.gsub(/FILEPATH/, file_path)
-            puts command_to_run
             if system(command_to_run)
               File.open("#{file_path}.sha","w+") {|fh| fh.write sha_new }
             end
