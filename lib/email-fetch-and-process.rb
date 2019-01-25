@@ -21,7 +21,8 @@ class EmailFetchAndProcess
         fetch: ['SUBJECT', ''],
         filename: '',
         action: 'echo FILEPATH',
-        subdirectory: nil
+        subdirectory: nil,
+        destination: '/tmp'
       }
     end
 
@@ -30,7 +31,7 @@ class EmailFetchAndProcess
     end
 
     def multiple_fetch_terms?
-      Array === @args[:fetch][0]
+      @args[:fetch][0].is_a?(Array)
     end
 
     def filename
@@ -43,6 +44,10 @@ class EmailFetchAndProcess
 
     def subdirectory
       @args[:subdirectory]
+    end
+
+    def destination
+      @args[:destination]
     end
   end
 
@@ -65,7 +70,7 @@ class EmailFetchAndProcess
   end
 
   def imap_connection
-    imap = Net::IMAP.new(@args[:host], {:port => @args[:port], :ssl => {:verify_mode => OpenSSL::SSL::VERIFY_NONE}})
+    imap = Net::IMAP.new(@args[:host], port: @args[:port], ssl: { verify_mode: OpenSSL::SSL::VERIFY_NONE })
     imap.login(@args[:id], @args[:password])
     imap.examine(@args[:mailbox])
     imap
@@ -91,12 +96,13 @@ class EmailFetchAndProcess
 
         @body_index += 1
         attachment = part
-        attachment_path = File.expand_path(File.join(@destination, name))
-        attachment_path = nil unless attachment_path =~ /^#{@destination}/
-        next unless @destination != attachment_path
+        final_destination = job.destination || @destination
+        attachment_path = File.expand_path(File.join(final_destination, name))
+        attachment_path = nil unless attachment_path =~ /^#{final_destination}/
+        next unless final_destination != attachment_path
 
         if attachment && attachment_path
-          file_path = File.join([@destination, job.subdirectory, name].compact)
+          file_path = File.join([final_destination, job.subdirectory, name].compact)
           atch = attachment.body.to_s
           FileUtils.mkdir_p File.dirname(file_path) unless FileTest.exist? File.dirname(file_path)
           File.open(file_path, 'wb+') do |fh|
@@ -107,10 +113,9 @@ class EmailFetchAndProcess
           FileTest.exist?("#{file_path}.sha") &&
             File.open("#{file_path}.sha", 'r') { |fh| sha_old = fh.read.chomp }
           if sha_new != sha_old
-            command_to_run = job.action.gsub(/FILEPATH/, file_path)
-            if system(command_to_run)
-              File.open("#{file_path}.sha","w+") {|fh| fh.write sha_new }
-            end
+            command_to_run = job.action.gsub(/FILEPATH/, file_path).gsub(/DESTINATION/, final_destination)
+            system(command_to_run) &&
+              File.open("#{file_path}.sha", 'w+') { |fh| fh.write sha_new }
           end
         end
       end
@@ -122,13 +127,14 @@ class EmailFetchAndProcess
 
     jobs.each do |job|
       msg_ids = if job.multiple_fetch_terms?
-                  _ids = []
-                  job.fetch.each { |j| _ids += @imap.search(j) }
-                  _ids
+                  all_ids = []
+                  job.fetch.each { |j| all_ids += @imap.search(j) }
+                  all_ids
                 else
                   @imap.search(job.fetch)
                 end
       next if msg_ids.nil? || msg_ids.empty?
+
       begin
         msgs = @imap.fetch(msg_ids, %w[ENVELOPE RFC822])
         msg = msgs.max_by { |m| Time.parse(m['attr']['ENVELOPE'].date) }.attr['RFC822']
