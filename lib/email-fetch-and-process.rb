@@ -61,9 +61,7 @@ class EmailFetchAndProcess
   end
 
   def imap_connection
-    puts "CONNECTING WITH #{@args.inspect}"
     imap = Net::IMAP.new(@args[:host], {:port => @args[:port], :ssl => {:verify_mode => OpenSSL::SSL::VERIFY_NONE}})
-    puts "imap.login(#{@args[:id]}, #{@args[:password]})"
     imap.login(@args[:id], @args[:password])
     imap.examine(@args[:mailbox])
     imap
@@ -121,7 +119,6 @@ class EmailFetchAndProcess
     jobs.each do |job|
       msg_ids = @imap.search(job.fetch)
       next if msg_ids.nil? || msg_ids.empty?
-      puts msg_ids.inspect
       begin
         msgs = @imap.fetch(msg_ids, %w[ENVELOPE RFC822])
         msg = msgs.max_by { |m| Time.parse(m['attr']['ENVELOPE'].date) }.attr['RFC822']

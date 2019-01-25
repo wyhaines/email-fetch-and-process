@@ -25,10 +25,11 @@ Or install it yourself as:
 ```
 require 'email-fetch-and-process'
 
-job = EmailFetchAndProcess::Job.new({fetch: ['SUBJECT', 'Some subject line']})
-r = EmailFetchAndProcess.new({host: 'imap.gmail.com',port: 993, id: 'YOURID', password: 'YOURPASSWORD'})
+jobs = []
+jobs << EmailFetchAndProcess::Job.new({fetch: ['SUBJECT', 'Some subject line']})
 
-r.run([job])
+r = EmailFetchAndProcess.new({host: 'imap.gmail.com',port: 993, id: 'YOURID', password: 'YOURPASSWORD'})
+r.run(jobs)
 ```
 
 ## Contributing
