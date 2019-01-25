@@ -1,11 +1,14 @@
 PATH
   remote: .
   specs:
-    email-fetch-and-process (0.1.2)
+    email-fetch-and-process (0.1.3)
 
 GEM
   remote: https://rubygems.org/
   specs:
+    mail (2.7.1)
+      mini_mime (>= 0.1.1)
+    mini_mime (1.0.1)
     minitest (5.11.3)
     rake (10.5.0)
 
@@ -15,6 +18,7 @@ PLATFORMS
 DEPENDENCIES
   bundler (~> 1.17)
   email-fetch-and-process!
+  mail
   minitest (~> 5.0)
   rake (~> 10.0)
 
