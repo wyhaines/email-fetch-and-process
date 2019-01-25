@@ -4,6 +4,7 @@ require 'net/imap'
 require 'fileutils'
 require 'mail'
 require 'time'
+require 'shellwords'
 require 'email-fetch-and-process/version'
 
 # Wrap up the logic to iterate through a bunch of fetch and handle
@@ -113,7 +114,8 @@ class EmailFetchAndProcess
           FileTest.exist?("#{file_path}.sha") &&
             File.open("#{file_path}.sha", 'r') { |fh| sha_old = fh.read.chomp }
           if sha_new != sha_old
-            command_to_run = job.action.gsub(/FILEPATH/, file_path).gsub(/DESTINATION/, final_destination)
+            command_to_run = job.action.gsub(/FILEPATH/, Shellwords.escape(file_path)).
+              gsub(/DESTINATION/, Shellwords.escape(final_destination))
             system(command_to_run) &&
               File.open("#{file_path}.sha", 'w+') { |fh| fh.write sha_new }
           end
