@@ -29,6 +29,10 @@ class EmailFetchAndProcess
       @args[:fetch]
     end
 
+    def multiple_fetch_terms?
+      Array === @args[:fetch][0]
+    end
+
     def filename
       @args[:filename]
     end
@@ -117,7 +121,13 @@ class EmailFetchAndProcess
     @imap = imap_connection
 
     jobs.each do |job|
-      msg_ids = @imap.search(job.fetch)
+      msg_ids = if job.multiple_fetch_terms?
+                  _ids = []
+                  job.fetch.each { |j| _ids += @imap.search(j) }
+                  _ids
+                else
+                  @imap.search(job.fetch)
+                end
       next if msg_ids.nil? || msg_ids.empty?
       begin
         msgs = @imap.fetch(msg_ids, %w[ENVELOPE RFC822])
