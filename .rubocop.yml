@@ -2,3 +2,17 @@ AllCops:
   TargetRubyVersion: 2.6
 Metrics/LineLength:
   Enabled: false
+Metrics/MethodLength:
+  Enabled: false
+Metrics/AbcSize:
+  Enabled: false
+Style/RescueModifier:
+  Enabled: false
+Metrics/BlockLength:
+  Enabled: false
+Metrics/PerceivedComplexity:
+  Enabled: false
+Metrics/CyclomaticComplexity:
+  Enabled: false
+Naming/FileName:
+  Enabled: false
